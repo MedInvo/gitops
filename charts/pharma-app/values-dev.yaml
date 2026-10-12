@@ -14,7 +14,7 @@ productService:
   replicaCount: 2
   image:
     repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-product-service
-    tag: sha-5653f89
+    tag: sha-f433451
   service:
     port: 8001
     targetPort: 8001
@@ -22,7 +22,7 @@ orderService:
   replicaCount: 2
   image:
     repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-order-service
-    tag: sha-5653f89
+    tag: sha-f433451
   service:
     port: 8000
     targetPort: 8000
