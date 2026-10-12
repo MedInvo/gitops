@@ -1,0 +1,49 @@
+# OS and editor files
+.DS_Store
+.AppleDouble
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets and local environment variables
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.yaml
+secrets.yml
+*-secret.yaml
+*-secret.yml
+
+# Terraform state and local working files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl.backup
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Kubernetes temporary files
+*.kubeconfig
+kubeconfig
+kubectl-*.yaml
+
+# Helm temporary output
+rendered.yaml
+rendered-*.yaml
+helm-output.yaml
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak

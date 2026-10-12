@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "pharma-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        {{- include "pharma-app.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.service.targetPort }}
+              protocol: TCP

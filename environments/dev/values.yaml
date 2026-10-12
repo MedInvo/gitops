@@ -1,0 +1,48 @@
+---
+namespace:
+  create: false
+  name: pharma-app
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: upendra2024/pharma-devops-microservices-frontend
+    tag: v1.0.1
+  service:
+    port: 80
+    targetPort: 80
+
+productService:
+  replicaCount: 2
+  image:
+    repository: upendra2024/pharma-devops-microservices-product-service
+    tag: v1.0.2
+  service:
+    port: 8001
+    targetPort: 8001
+
+orderService:
+  replicaCount: 2
+  image:
+    repository: upendra2024/pharma-devops-microservices-order-service
+    tag: v1.0.2
+  service:
+    port: 8000
+    targetPort: 8000
+
+postgres:
+  host: postgres
+  port: 5432
+  database: pharma_db
+
+config:
+  orderServiceHost: order-service
+  orderServicePort: "8000"
+  productServiceHost: product-service
+  productServicePort: "8001"
+
+secrets:
+  create: false
+  postgresUser: ""
+  postgresPassword: ""
+  postgresDatabase: ""

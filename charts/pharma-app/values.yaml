@@ -1,0 +1,60 @@
+---
+namespace:
+  create: true
+  name: pharma-app
+
+
+frontend:
+  replicaCount: 2
+
+  image:
+    repository: ""
+    tag: ""
+
+  service:
+    port: 80
+    targetPort: 80
+
+
+productService:
+  replicaCount: 2
+
+  image:
+    repository: ""
+    tag: ""
+
+  service:
+    port: 8001
+    targetPort: 8001
+
+
+orderService:
+  replicaCount: 2
+
+  image:
+    repository: ""
+    tag: ""
+
+  service:
+    port: 8000
+    targetPort: 8000
+
+
+postgres:
+  host: ""
+  port: 5432
+  database: ""
+
+
+config:
+  orderServiceHost: order-service
+  orderServicePort: "8000"
+
+  productServiceHost: product-service
+  productServicePort: "8001"
+
+secrets:
+  create: true
+  postgresUser: ""
+  postgresPassword: ""
+  postgresDatabase: ""
