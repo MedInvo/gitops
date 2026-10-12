@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: {{ .Values.namespace.name }}
+data:
+  POSTGRES_HOST: {{ .Values.postgres.host | quote }}
+  POSTGRES_PORT: {{ .Values.postgres.port | quote }}
+  POSTGRES_DB: {{ .Values.postgres.database | quote }}
+
+  ORDER_SERVICE_HOST: {{ .Values.config.orderServiceHost | quote }}
+  ORDER_SERVICE_PORT: {{ .Values.config.orderServicePort | quote }}
+
+  PRODUCT_SERVICE_HOST: {{ .Values.config.productServiceHost | quote }}
+  PRODUCT_SERVICE_PORT: {{ .Values.config.productServicePort | quote }}

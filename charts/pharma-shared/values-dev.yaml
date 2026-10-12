@@ -1,0 +1,13 @@
+namespace:
+  name: pharma-app
+
+postgres:
+  host: pharma-medinvo-dev-postgres.c0hqgkiiwibb.us-east-1.rds.amazonaws.com
+  port: 5432
+  database: pharma_db
+
+config:
+  orderServiceHost: order-service
+  orderServicePort: "8000"
+  productServiceHost: product-service
+  productServicePort: "8001"

@@ -1,0 +1,16 @@
+namespace:
+  name: pharma-app
+
+productService:
+  replicaCount: 2
+  image:
+    repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-product-service
+    tag: sha-f433451
+  service:
+    port: 8001
+    targetPort: 8001
+
+postgres:
+  host: pharma-medinvo-dev-postgres.c0hqgkiiwibb.us-east-1.rds.amazonaws.com
+  port: 5432
+  database: pharma_db

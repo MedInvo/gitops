@@ -1,0 +1,584 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:apps/Deployment:pharma-app/frontend
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:apps/Deployment:pharma-app/frontend"},"labels":{"app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/part-of":"pharma-app","helm.sh/chart":"pharma-app-1.0.0"},"name":"frontend","namespace":"pharma-app"},"spec":{"replicas":2,"selector":{"matchLabels":{"app":"frontend"}},"template":{"metadata":{"labels":{"app":"frontend","app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/part-of":"pharma-app"}},"spec":{"containers":[{"image":"259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-frontend:sha-a1b28f6","imagePullPolicy":"IfNotPresent","name":"frontend","ports":[{"containerPort":80,"name":"http","protocol":"TCP"}]}]}}}}
+    creationTimestamp: "2026-10-12T19:29:23Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: pharma-dev
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/part-of: pharma-app
+      helm.sh/chart: pharma-app-1.0.0
+    name: frontend
+    namespace: pharma-app
+    resourceVersion: "69901"
+    uid: 29b9ab8d-1d8b-4e9e-9129-d21c7c403e97
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: frontend
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: frontend
+          app.kubernetes.io/instance: pharma-dev
+          app.kubernetes.io/part-of: pharma-app
+      spec:
+        containers:
+        - image: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-frontend:sha-a1b28f6
+          imagePullPolicy: IfNotPresent
+          name: frontend
+          ports:
+          - containerPort: 80
+            name: http
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2026-10-12T19:29:26Z"
+      lastUpdateTime: "2026-10-12T19:29:26Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-10-12T19:29:23Z"
+      lastUpdateTime: "2026-10-12T19:29:26Z"
+      message: ReplicaSet "frontend-5968795478" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:apps/Deployment:pharma-app/order-service
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:apps/Deployment:pharma-app/order-service"},"labels":{"app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/part-of":"pharma-app","helm.sh/chart":"pharma-app-1.0.0"},"name":"order-service","namespace":"pharma-app"},"spec":{"replicas":2,"selector":{"matchLabels":{"app":"order-service"}},"template":{"metadata":{"labels":{"app":"order-service","app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/part-of":"pharma-app"}},"spec":{"containers":[{"env":[{"name":"POSTGRES_HOST","valueFrom":{"configMapKeyRef":{"key":"POSTGRES_HOST","name":"app-config"}}},{"name":"POSTGRES_PORT","valueFrom":{"configMapKeyRef":{"key":"POSTGRES_PORT","name":"app-config"}}},{"name":"POSTGRES_DB","valueFrom":{"secretKeyRef":{"key":"POSTGRES_DB","name":"postgres-secret"}}},{"name":"POSTGRES_USER","valueFrom":{"secretKeyRef":{"key":"POSTGRES_USER","name":"postgres-secret"}}},{"name":"POSTGRES_PASSWORD","valueFrom":{"secretKeyRef":{"key":"POSTGRES_PASSWORD","name":"postgres-secret"}}},{"name":"DATABASE_URL","value":"postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"},{"name":"PRODUCT_SERVICE_URL","value":"http://product-service:8001"}],"image":"259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-order-service:sha-f433451","imagePullPolicy":"IfNotPresent","name":"order-service","ports":[{"containerPort":8000,"name":"http","protocol":"TCP"}]}]}}}}
+    creationTimestamp: "2026-10-12T19:29:23Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: pharma-dev
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/part-of: pharma-app
+      helm.sh/chart: pharma-app-1.0.0
+    name: order-service
+    namespace: pharma-app
+    resourceVersion: "69929"
+    uid: 9eb20fc4-bee6-4cf3-a58e-4521dd309d92
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: order-service
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: order-service
+          app.kubernetes.io/instance: pharma-dev
+          app.kubernetes.io/part-of: pharma-app
+      spec:
+        containers:
+        - env:
+          - name: POSTGRES_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_HOST
+                name: app-config
+          - name: POSTGRES_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_PORT
+                name: app-config
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_DB
+                name: postgres-secret
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_USER
+                name: postgres-secret
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_PASSWORD
+                name: postgres-secret
+          - name: DATABASE_URL
+            value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
+          - name: PRODUCT_SERVICE_URL
+            value: http://product-service:8001
+          image: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-order-service:sha-f433451
+          imagePullPolicy: IfNotPresent
+          name: order-service
+          ports:
+          - containerPort: 8000
+            name: http
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2026-10-12T19:29:28Z"
+      lastUpdateTime: "2026-10-12T19:29:28Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-10-12T19:29:23Z"
+      lastUpdateTime: "2026-10-12T19:29:28Z"
+      message: ReplicaSet "order-service-7d7f5b9686" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:apps/Deployment:pharma-app/product-service
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:apps/Deployment:pharma-app/product-service"},"labels":{"app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/part-of":"pharma-app","helm.sh/chart":"pharma-app-1.0.0"},"name":"product-service","namespace":"pharma-app"},"spec":{"replicas":2,"selector":{"matchLabels":{"app":"product-service"}},"template":{"metadata":{"labels":{"app":"product-service","app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/part-of":"pharma-app"}},"spec":{"containers":[{"env":[{"name":"POSTGRES_HOST","valueFrom":{"configMapKeyRef":{"key":"POSTGRES_HOST","name":"app-config"}}},{"name":"POSTGRES_PORT","valueFrom":{"configMapKeyRef":{"key":"POSTGRES_PORT","name":"app-config"}}},{"name":"POSTGRES_DB","valueFrom":{"secretKeyRef":{"key":"POSTGRES_DB","name":"postgres-secret"}}},{"name":"POSTGRES_USER","valueFrom":{"secretKeyRef":{"key":"POSTGRES_USER","name":"postgres-secret"}}},{"name":"POSTGRES_PASSWORD","valueFrom":{"secretKeyRef":{"key":"POSTGRES_PASSWORD","name":"postgres-secret"}}},{"name":"DATABASE_URL","value":"postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"}],"image":"259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-product-service:sha-f433451","imagePullPolicy":"IfNotPresent","livenessProbe":{"initialDelaySeconds":30,"periodSeconds":10,"tcpSocket":{"port":8001}},"name":"product-service","ports":[{"containerPort":8001,"name":"http","protocol":"TCP"}],"readinessProbe":{"initialDelaySeconds":10,"periodSeconds":5,"tcpSocket":{"port":8001}}}]}}}}
+    creationTimestamp: "2026-10-12T19:29:23Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: pharma-dev
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/part-of: pharma-app
+      helm.sh/chart: pharma-app-1.0.0
+    name: product-service
+    namespace: pharma-app
+    resourceVersion: "69986"
+    uid: 0653049c-2595-4d31-9647-489bffc51cbf
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: product-service
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: product-service
+          app.kubernetes.io/instance: pharma-dev
+          app.kubernetes.io/part-of: pharma-app
+      spec:
+        containers:
+        - env:
+          - name: POSTGRES_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_HOST
+                name: app-config
+          - name: POSTGRES_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_PORT
+                name: app-config
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_DB
+                name: postgres-secret
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_USER
+                name: postgres-secret
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_PASSWORD
+                name: postgres-secret
+          - name: DATABASE_URL
+            value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)
+          image: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-product-service:sha-f433451
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 8001
+            timeoutSeconds: 1
+          name: product-service
+          ports:
+          - containerPort: 8001
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            tcpSocket:
+              port: 8001
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2026-10-12T19:29:41Z"
+      lastUpdateTime: "2026-10-12T19:29:41Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-10-12T19:29:23Z"
+      lastUpdateTime: "2026-10-12T19:29:41Z"
+      message: ReplicaSet "product-service-75cdb6fd9d" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:/Service:pharma-app/frontend
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:/Service:pharma-app/frontend"},"labels":{"app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/part-of":"pharma-app","helm.sh/chart":"pharma-app-1.0.0"},"name":"frontend","namespace":"pharma-app"},"spec":{"ports":[{"name":"http","port":80,"protocol":"TCP","targetPort":80}],"selector":{"app":"frontend"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-10-12T19:29:22Z"
+    labels:
+      app.kubernetes.io/instance: pharma-dev
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/part-of: pharma-app
+      helm.sh/chart: pharma-app-1.0.0
+    name: frontend
+    namespace: pharma-app
+    resourceVersion: "69764"
+    uid: 4321961c-6731-4857-923c-fd1b23cad54d
+  spec:
+    clusterIP: 172.20.150.189
+    clusterIPs:
+    - 172.20.150.189
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    selector:
+      app: frontend
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:/Service:pharma-app/order-service
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:/Service:pharma-app/order-service"},"labels":{"app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/part-of":"pharma-app","helm.sh/chart":"pharma-app-1.0.0"},"name":"order-service","namespace":"pharma-app"},"spec":{"ports":[{"name":"http","port":8000,"protocol":"TCP","targetPort":8000}],"selector":{"app":"order-service"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-10-12T19:29:23Z"
+    labels:
+      app.kubernetes.io/instance: pharma-dev
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/part-of: pharma-app
+      helm.sh/chart: pharma-app-1.0.0
+    name: order-service
+    namespace: pharma-app
+    resourceVersion: "69779"
+    uid: edae1294-d1cd-4a0f-8179-56f385bd8fd5
+  spec:
+    clusterIP: 172.20.136.103
+    clusterIPs:
+    - 172.20.136.103
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+    selector:
+      app: order-service
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:/Service:pharma-app/product-service
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:/Service:pharma-app/product-service"},"labels":{"app.kubernetes.io/instance":"pharma-dev","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/part-of":"pharma-app","helm.sh/chart":"pharma-app-1.0.0"},"name":"product-service","namespace":"pharma-app"},"spec":{"ports":[{"name":"http","port":8001,"protocol":"TCP","targetPort":8001}],"selector":{"app":"product-service"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-10-12T19:29:23Z"
+    labels:
+      app.kubernetes.io/instance: pharma-dev
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/part-of: pharma-app
+      helm.sh/chart: pharma-app-1.0.0
+    name: product-service
+    namespace: pharma-app
+    resourceVersion: "69776"
+    uid: c93fde99-dc00-4fe9-ac74-dbd2e7c50605
+  spec:
+    clusterIP: 172.20.10.158
+    clusterIPs:
+    - 172.20.10.158
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 8001
+      protocol: TCP
+      targetPort: 8001
+    selector:
+      app: product-service
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  data:
+    ORDER_SERVICE_HOST: order-service
+    ORDER_SERVICE_PORT: "8000"
+    POSTGRES_DB: pharma_db
+    POSTGRES_HOST: pharma-medinvo-dev-postgres.c0hqgkiiwibb.us-east-1.rds.amazonaws.com
+    POSTGRES_PORT: "5432"
+    PRODUCT_SERVICE_HOST: product-service
+    PRODUCT_SERVICE_PORT: "8001"
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:/ConfigMap:pharma-app/app-config
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"ORDER_SERVICE_HOST":"order-service","ORDER_SERVICE_PORT":"8000","POSTGRES_DB":"pharma_db","POSTGRES_HOST":"pharma-medinvo-dev-postgres.c0hqgkiiwibb.us-east-1.rds.amazonaws.com","POSTGRES_PORT":"5432","PRODUCT_SERVICE_HOST":"product-service","PRODUCT_SERVICE_PORT":"8001"},"kind":"ConfigMap","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:/ConfigMap:pharma-app/app-config"},"name":"app-config","namespace":"pharma-app"}}
+    creationTimestamp: "2026-10-12T19:29:22Z"
+    name: app-config
+    namespace: pharma-app
+    resourceVersion: "69761"
+    uid: c64690a5-cc08-4b5d-b33e-664e275b94e2
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIDMjCCAhqgAwIBAgIRAN59jBibtw0xUNO/S/jEsbowDQYJKoZIhvcNAQELBQAw
+      JzEQMA4GA1UEChMHQVdTIEVLUzETMBEGA1UEAxMKa3ViZXJuZXRlczAeFw0yNjEw
+      MTIxMzIxMzlaFw0zMTEwMTExMzIxMzlaMCcxEDAOBgNVBAoTB0FXUyBFS1MxEzAR
+      BgNVBAMTCmt1YmVybmV0ZXMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
+      AQC+lEQlOBIGDFUzZJKwLSaFa4UgGejSNIrGQtMwLvOjs2t0ewswuZ9vvs9yTGrv
+      mAas/jlUQahMJRgjuTCf9rmrPN5/NuyeeJMH/5vR5uPQTBWMXNFC7Ct07UD36H2+
+      T+/g6YaT1W91/zxGPHLculswtyO1uDPJORURPoBkfRHN3t3O1EVFdQK1HpxgP/Ho
+      0lC210mXzZL76QJfwTE59uLzjwe5GtI8LmXuQSNoyA1U2QGfomhZAcizRc0/FCP1
+      +2XV1n+Ex1fzx4rHC3NfG09eY+md/xkSyk5eIOmXHtpga4ScsCtlHHHsRlm7+NVZ
+      1Szvt9PhqWW8KmyB+BwQBDqzAgMBAAGjWTBXMA4GA1UdDwEB/wQEAwICpDAPBgNV
+      HRMBAf8EBTADAQH/MB0GA1UdDgQWBBQhUx8QDc6+b2FDB9sWGC/4d2fqdzAVBgNV
+      HREEDjAMggprdWJlcm5ldGVzMA0GCSqGSIb3DQEBCwUAA4IBAQAOPoX+5MJtrUxv
+      413+lSQzgV5gLXsfq6gEQ0cZSLkq5UB+QxcOMVAGtrciS1FF6+vt+/CHf7bvO/UU
+      jM8sSvXMYrSl4DI3kCJYgykkV+9j8YuEwwgDX8abXvQ9xpUOPsRu5DEITNUsSWnO
+      0tkrKO0KRHXV0081G2A2KiTTmOTIWMeovJRQ2z7u+5Y1aLxLwQ8ItgUln78rfEMR
+      QZsZDxo4q8LSCcehsSqmmlAFh+0iqUVkzcONk5zJc/4isWYsey3tBnI4k1/LcL/5
+      CgSXvq+coWzh+OQPDoorXvvm0kcfOoX78NU6r0hcuotLK8FllM2gmDkwS6O6bqn2
+      yI9tnaaW
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2026-10-12T19:29:22Z"
+    name: kube-root-ca.crt
+    namespace: pharma-app
+    resourceVersion: "69756"
+    uid: db0d7ab7-15c5-4e8c-8c09-c801ee84ea9e
+- apiVersion: external-secrets.io/v1
+  kind: ExternalSecret
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:external-secrets.io/ExternalSecret:pharma-app/pharma-db-secret
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"external-secrets.io/v1","kind":"ExternalSecret","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:external-secrets.io/ExternalSecret:pharma-app/pharma-db-secret"},"name":"pharma-db-secret","namespace":"pharma-app"},"spec":{"data":[{"remoteRef":{"key":"pharma-medinvo/dev/app-db","property":"username"},"secretKey":"username"},{"remoteRef":{"key":"pharma-medinvo/dev/app-db","property":"password"},"secretKey":"password"},{"remoteRef":{"key":"pharma-medinvo/dev/app-db","property":"dbname"},"secretKey":"dbname"}],"refreshInterval":"1h","secretStoreRef":{"kind":"ClusterSecretStore","name":"pharma-aws-secrets"},"target":{"creationPolicy":"Owner","name":"postgres-secret","template":{"data":{"POSTGRES_DB":"{{ .dbname }}","POSTGRES_PASSWORD":"{{ .password }}","POSTGRES_USER":"{{ .username }}"},"type":"Opaque"}}}}
+    creationTimestamp: "2026-10-12T19:29:23Z"
+    finalizers:
+    - externalsecrets.external-secrets.io/externalsecret-cleanup
+    generation: 1
+    name: pharma-db-secret
+    namespace: pharma-app
+    resourceVersion: "69872"
+    uid: af79867c-446b-497a-b3aa-20ec6ba56f69
+  spec:
+    data:
+    - remoteRef:
+        key: pharma-medinvo/dev/app-db
+        property: username
+      secretKey: username
+    - remoteRef:
+        key: pharma-medinvo/dev/app-db
+        property: password
+      secretKey: password
+    - remoteRef:
+        key: pharma-medinvo/dev/app-db
+        property: dbname
+      secretKey: dbname
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: pharma-aws-secrets
+    target:
+      creationPolicy: Owner
+      deletionPolicy: Retain
+      name: postgres-secret
+      template:
+        data:
+          POSTGRES_DB: '{{ .dbname }}'
+          POSTGRES_PASSWORD: '{{ .password }}'
+          POSTGRES_USER: '{{ .username }}'
+        engineVersion: v2
+        mergePolicy: Replace
+        type: Opaque
+  status:
+    binding:
+      name: postgres-secret
+    conditions:
+    - lastTransitionTime: "2026-10-12T19:29:24Z"
+      message: secret synced
+      reason: SecretSynced
+      status: "True"
+      type: Ready
+    refreshTime: "2026-10-12T19:29:24Z"
+    syncedResourceVersion: 1-10a4773f0fd8abbce56d14c7b3ab96b822e1ae8ff86466fb3fd4fc6e
+- apiVersion: external-secrets.io/v1
+  kind: ClusterSecretStore
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: pharma-dev:external-secrets.io/ClusterSecretStore:pharma-app/pharma-aws-secrets
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"external-secrets.io/v1","kind":"ClusterSecretStore","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"pharma-dev:external-secrets.io/ClusterSecretStore:pharma-app/pharma-aws-secrets"},"name":"pharma-aws-secrets"},"spec":{"provider":{"aws":{"auth":{"jwt":{"serviceAccountRef":{"name":"external-secrets","namespace":"external-secrets"}}},"region":"us-east-1","service":"SecretsManager"}}}}
+    creationTimestamp: "2026-10-12T19:29:23Z"
+    generation: 1
+    name: pharma-aws-secrets
+    resourceVersion: "69851"
+    uid: c4389913-0efe-4b16-973a-a57c9d65177c
+  spec:
+    provider:
+      aws:
+        auth:
+          jwt:
+            serviceAccountRef:
+              name: external-secrets
+              namespace: external-secrets
+        region: us-east-1
+        service: SecretsManager
+        sessionTagsPolicy: None
+  status:
+    capabilities: ReadWrite
+    conditions:
+    - lastTransitionTime: "2026-10-12T19:29:23Z"
+      message: store validated
+      reason: Valid
+      status: "True"
+      type: Ready
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      alb.ingress.kubernetes.io/healthcheck-path: /
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      argocd.argoproj.io/tracking-id: pharma-dev:networking.k8s.io/Ingress:pharma-app/pharma-frontend
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"alb.ingress.kubernetes.io/healthcheck-path":"/","alb.ingress.kubernetes.io/listen-ports":"[{\"HTTP\":80}]","alb.ingress.kubernetes.io/scheme":"internet-facing","alb.ingress.kubernetes.io/target-type":"ip","argocd.argoproj.io/tracking-id":"pharma-dev:networking.k8s.io/Ingress:pharma-app/pharma-frontend"},"name":"pharma-frontend","namespace":"pharma-app"},"spec":{"ingressClassName":"alb","rules":[{"http":{"paths":[{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}]}}
+    creationTimestamp: "2026-10-12T19:54:47Z"
+    finalizers:
+    - ingress.k8s.aws/resources
+    generation: 1
+    name: pharma-frontend
+    namespace: pharma-app
+    resourceVersion: "74936"
+    uid: 082bb691-c0f3-4c9f-8c1d-b6d43545bed0
+  spec:
+    ingressClassName: alb
+    rules:
+    - http:
+        paths:
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+  status:
+    loadBalancer: {}
+kind: List
+metadata:
+  resourceVersion: ""

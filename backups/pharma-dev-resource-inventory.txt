@@ -1,0 +1,10 @@
+ConfigMap	pharma-app	app-config
+Service	pharma-app	frontend
+Service	pharma-app	order-service
+Service	pharma-app	product-service
+Deployment	pharma-app	frontend
+Deployment	pharma-app	order-service
+Deployment	pharma-app	product-service
+ClusterSecretStore		pharma-aws-secrets
+ExternalSecret	pharma-app	pharma-db-secret
+Ingress	pharma-app	pharma-frontend

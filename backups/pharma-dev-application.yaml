@@ -1,0 +1,275 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{},"name":"pharma-dev","namespace":"argocd"},"spec":{"destination":{"namespace":"pharma-app","server":"https://kubernetes.default.svc"},"project":"pharma-project","source":{"helm":{"valueFiles":["values.yaml","values-dev.yaml"]},"path":"charts/pharma-app","repoURL":"https://github.com/MedInvo/gitops.git","targetRevision":"main"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true"]}}}
+  creationTimestamp: "2026-10-12T19:24:09Z"
+  generation: 51
+  name: pharma-dev
+  namespace: argocd
+  resourceVersion: "78452"
+  uid: 22447619-505f-40d5-8091-2a822dbf24fc
+spec:
+  destination:
+    namespace: pharma-app
+    server: https://kubernetes.default.svc
+  project: pharma-project
+  source:
+    helm:
+      valueFiles:
+      - values.yaml
+      - values-dev.yaml
+    path: charts/pharma-app
+    repoURL: https://github.com/MedInvo/gitops.git
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-10-12T19:54:47Z"
+    status: Progressing
+  history:
+  - deployStartedAt: "2026-10-12T19:24:12Z"
+    deployedAt: "2026-10-12T19:29:23Z"
+    id: 0
+    initiatedBy:
+      automated: true
+    revision: 278a10bf6aad04409c93764e144deee841ece407
+    source:
+      helm:
+        valueFiles:
+        - values.yaml
+        - values-dev.yaml
+      path: charts/pharma-app
+      repoURL: https://github.com/MedInvo/gitops.git
+      targetRevision: main
+  - deployStartedAt: "2026-10-12T19:54:46Z"
+    deployedAt: "2026-10-12T19:54:47Z"
+    id: 1
+    initiatedBy:
+      automated: true
+    revision: 32b7121b3afbeb37ecebccb4ad4f4ae36034940c
+    source:
+      helm:
+        valueFiles:
+        - values.yaml
+        - values-dev.yaml
+      path: charts/pharma-app
+      repoURL: https://github.com/MedInvo/gitops.git
+      targetRevision: main
+  operationState:
+    finishedAt: "2026-10-12T19:54:47Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        prune: true
+        revision: 32b7121b3afbeb37ecebccb4ad4f4ae36034940c
+        source:
+          helm:
+            valueFiles:
+            - values.yaml
+            - values-dev.yaml
+          path: charts/pharma-app
+          repoURL: https://github.com/MedInvo/gitops.git
+          targetRevision: main
+        syncOptions:
+        - CreateNamespace=true
+    phase: Succeeded
+    startedAt: "2026-10-12T19:54:46Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Running
+        kind: ConfigMap
+        message: configmap/app-config unchanged
+        name: app-config
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: service/order-service unchanged
+        name: order-service
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: service/product-service unchanged
+        name: product-service
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: service/frontend unchanged
+        name: frontend
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-frontend:sha-a1b28f6
+        kind: Deployment
+        message: deployment.apps/frontend unchanged
+        name: frontend
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-order-service:sha-f433451
+        kind: Deployment
+        message: deployment.apps/order-service unchanged
+        name: order-service
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-product-service:sha-f433451
+        kind: Deployment
+        message: deployment.apps/product-service unchanged
+        name: product-service
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: networking.k8s.io
+        hookPhase: Running
+        kind: Ingress
+        message: ingress.networking.k8s.io/pharma-frontend created
+        name: pharma-frontend
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: external-secrets.io
+        hookPhase: Running
+        kind: ClusterSecretStore
+        message: clustersecretstore.external-secrets.io/pharma-aws-secrets unchanged
+        name: pharma-aws-secrets
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: external-secrets.io
+        hookPhase: Running
+        kind: ExternalSecret
+        message: externalsecret.external-secrets.io/pharma-db-secret unchanged
+        name: pharma-db-secret
+        namespace: pharma-app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 32b7121b3afbeb37ecebccb4ad4f4ae36034940c
+      source:
+        helm:
+          valueFiles:
+          - values.yaml
+          - values-dev.yaml
+        path: charts/pharma-app
+        repoURL: https://github.com/MedInvo/gitops.git
+        targetRevision: main
+  reconciledAt: "2026-10-12T20:12:29Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: ConfigMap
+    name: app-config
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  - kind: Service
+    name: frontend
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  - kind: Service
+    name: order-service
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  - kind: Service
+    name: product-service
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: frontend
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: order-service
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: product-service
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  - group: external-secrets.io
+    kind: ClusterSecretStore
+    name: pharma-aws-secrets
+    status: Synced
+    version: v1
+  - group: external-secrets.io
+    kind: ExternalSecret
+    name: pharma-db-secret
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  - group: networking.k8s.io
+    kind: Ingress
+    name: pharma-frontend
+    namespace: pharma-app
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Helm
+  summary:
+    images:
+    - 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-frontend:sha-a1b28f6
+    - 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-order-service:sha-f433451
+    - 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-product-service:sha-f433451
+  sync:
+    comparedTo:
+      destination:
+        namespace: pharma-app
+        server: https://kubernetes.default.svc
+      source:
+        helm:
+          valueFiles:
+          - values.yaml
+          - values-dev.yaml
+        path: charts/pharma-app
+        repoURL: https://github.com/MedInvo/gitops.git
+        targetRevision: main
+    revision: 32b7121b3afbeb37ecebccb4ad4f4ae36034940c
+    status: Synced
