@@ -18,6 +18,7 @@ secrets.yaml
 secrets.yml
 *-secret.yaml
 *-secret.yml
+!charts/pharma-app/templates/external-secret.yaml
 
 # Terraform state and local working files
 *.tfstate

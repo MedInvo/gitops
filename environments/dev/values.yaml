@@ -6,8 +6,8 @@ namespace:
 frontend:
   replicaCount: 2
   image:
-    repository: upendra2024/pharma-devops-microservices-frontend
-    tag: v1.0.1
+    repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-frontend
+    tag: sha-a1b28f6
   service:
     port: 80
     targetPort: 80
@@ -15,8 +15,8 @@ frontend:
 productService:
   replicaCount: 2
   image:
-    repository: upendra2024/pharma-devops-microservices-product-service
-    tag: v1.0.2
+    repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-product-service
+    tag: sha-e05ed88
   service:
     port: 8001
     targetPort: 8001
@@ -24,14 +24,14 @@ productService:
 orderService:
   replicaCount: 2
   image:
-    repository: upendra2024/pharma-devops-microservices-order-service
-    tag: v1.0.2
+    repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-order-service
+    tag: sha-e05ed88
   service:
     port: 8000
     targetPort: 8000
 
 postgres:
-  host: postgres
+  host: pharma-medinvo-dev-postgres.c0hqgkiiwibb.us-east-1.rds.amazonaws.com
   port: 5432
   database: pharma_db
 

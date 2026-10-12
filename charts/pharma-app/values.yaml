@@ -54,7 +54,7 @@ config:
   productServicePort: "8001"
 
 secrets:
-  create: true
+  create: false
   postgresUser: ""
   postgresPassword: ""
   postgresDatabase: ""
