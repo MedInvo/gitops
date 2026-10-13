@@ -22,8 +22,5 @@ spec:
     namespace: pharma-app
 
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true

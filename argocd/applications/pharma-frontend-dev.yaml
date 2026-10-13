@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pharma-frontend-dev
+  namespace: argocd
+spec:
+  project: pharma-project
+  source:
+    repoURL: https://github.com/MedInvo/gitops.git
+    targetRevision: main
+    path: charts/pharma-frontend
+    helm:
+      releaseName: pharma-dev
+      valueFiles:
+        - values.yaml
+        - values-dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pharma-app
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

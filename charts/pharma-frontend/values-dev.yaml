@@ -5,7 +5,7 @@ frontend:
   replicaCount: 2
   image:
     repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-frontend
-    tag: sha-a1b28f6
+    tag: sha-405b30b
   service:
     port: 80
     targetPort: 80
