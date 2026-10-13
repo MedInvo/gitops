@@ -1,11 +1,10 @@
 namespace:
   name: pharma-app
-
 frontend:
   replicaCount: 2
   image:
     repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-frontend
-    tag: sha-405b30b
+    tag: sha-37091e7
   service:
     port: 80
     targetPort: 80
