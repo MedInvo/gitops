@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pharma-handoff-empty
+description: Temporary empty chart for safe Argo CD ownership migration
+type: application
+version: 0.1.0
+appVersion: "1.0"
