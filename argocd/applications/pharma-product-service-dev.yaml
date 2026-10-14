@@ -10,7 +10,7 @@ spec:
     targetRevision: main
     path: charts/pharma-product-service
     helm:
-      releaseName: pharma-dev
+      releaseName: pharma-product-service
       valueFiles:
         - values.yaml
         - values-dev.yaml

@@ -1,171 +1,44 @@
-#!/usr/bin/env bash
-# Bootstrap Argo CD in the configured EKS cluster and register the Pharma dev app.
-# Usage:
-#   ./scripts/setup-argocd.sh
-#   ARGOCD_VERSION=vX.Y.Z ./scripts/setup-argocd.sh
-#
-# Requirements: kubectl, curl, base64, access to the target EKS cluster.
-# This script is intentionally safe to rerun: existing resources are applied/updated.
 
+#!/usr/bin/env bash
 set -Eeuo pipefail
 
-ARGOCD_NAMESPACE="${ARGOCD_NAMESPACE:-argocd}"
-APP_NAMESPACE="${APP_NAMESPACE:-pharma-app}"
-EXPECTED_CLUSTER="${EXPECTED_CLUSTER:-pharma-dev-cluster}"
-GITOPS_REPO_URL="${GITOPS_REPO_URL:-https://github.com/MedInvo/gitops.git}"
-GITOPS_BRANCH="${GITOPS_BRANCH:-main}"
-GITOPS_PATH="${GITOPS_PATH:-charts/pharma-app}"
-APP_NAME="${APP_NAME:-pharma-dev}"
-APP_PROJECT="${APP_PROJECT:-pharma-project}"
-ARGOCD_VERSION="${ARGOCD_VERSION:-}" # Set to a release tag to pin; blank uses official stable manifest.
-PROJECT_FILE="${PROJECT_FILE:-argocd/projects/pharma-project.yaml}"
-APPLICATION_FILE="${APPLICATION_FILE:-argocd/applications/pharma-dev.yaml}"
+ARGOCD_VERSION="v3.5.5"
+ARGOCD_NAMESPACE="argocd"
+ARGOCD_MANIFEST="https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
 
-die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
-info() { printf '\n==> %s\n' "$*"; }
+command -v kubectl >/dev/null 2>&1 || {
+  echo "ERROR: kubectl is not installed."
+  exit 1
+}
 
-command -v kubectl >/dev/null 2>&1 || die "kubectl is required."
-command -v curl >/dev/null 2>&1 || die "curl is required."
-command -v base64 >/dev/null 2>&1 || die "base64 is required."
+kubectl cluster-info >/dev/null
 
-CONTEXT="$(kubectl config current-context 2>/dev/null || true)"
-[[ -n "$CONTEXT" ]] || die "No current kubectl context. Configure AWS EKS access first."
-printf 'Current kubectl context: %s\n' "$CONTEXT"
-
-# Avoid installing to the wrong cluster by requiring an explicit override if the context differs.
-if [[ "$CONTEXT" != *"$EXPECTED_CLUSTER"* ]]; then
-  die "Context does not appear to target '$EXPECTED_CLUSTER'. Set EXPECTED_CLUSTER to the intended cluster name only if this is deliberate."
+if ! kubectl get namespace "$ARGOCD_NAMESPACE" >/dev/null 2>&1; then
+  kubectl create namespace "$ARGOCD_NAMESPACE"
 fi
 
-kubectl cluster-info >/dev/null 2>&1 || die "Cannot reach the Kubernetes API for context '$CONTEXT'."
+echo "Installing Argo CD ${ARGOCD_VERSION} with server-side apply..."
 
-if [[ -z "$ARGOCD_VERSION" ]]; then
-  ARGOCD_MANIFEST="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-  printf 'Using Argo CD stable manifest (not version-pinned). For repeatable setups, set ARGOCD_VERSION to a release tag.\n'
-else
-  ARGOCD_MANIFEST="https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
-fi
+kubectl apply --server-side -f "$ARGOCD_MANIFEST"
 
-info "Create Argo CD namespace"
-kubectl create namespace "$ARGOCD_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+echo "Waiting for Argo CD deployments..."
 
-info "Install or update Argo CD components"
-kubectl apply -n "$ARGOCD_NAMESPACE" -f "$ARGOCD_MANIFEST"
+kubectl rollout status deployment/argocd-server \
+  -n "$ARGOCD_NAMESPACE" --timeout=300s
 
-info "Wait for Argo CD deployments to roll out"
-# Deployment rollout waits are more useful than waiting for every pod (jobs/hooks can be transient).
-for deployment in \
-  argocd-application-controller \
-  argocd-applicationset-controller \
-  argocd-dex-server \
-  argocd-notifications-controller \
-  argocd-redis \
-  argocd-repo-server \
-  argocd-server
-do
-  if kubectl get deployment "$deployment" -n "$ARGOCD_NAMESPACE" >/dev/null 2>&1; then
-    kubectl rollout status "deployment/$deployment" -n "$ARGOCD_NAMESPACE" --timeout=300s
-  elif [[ "$deployment" == "argocd-application-controller" ]]; then
-    # Some Argo CD releases run the application controller as a StatefulSet.
-    if kubectl get statefulset "$deployment" -n "$ARGOCD_NAMESPACE" >/dev/null 2>&1; then
-      kubectl rollout status "statefulset/$deployment" -n "$ARGOCD_NAMESPACE" --timeout=300s
-    fi
-  fi
-done
+kubectl rollout status deployment/argocd-repo-server \
+  -n "$ARGOCD_NAMESPACE" --timeout=300s
 
-info "Wait briefly for CRDs to become available"
-for _ in $(seq 1 30); do
-  if kubectl get crd applications.argoproj.io >/dev/null 2>&1 && \
-     kubectl get crd appprojects.argoproj.io >/dev/null 2>&1; then
-    break
-  fi
-  sleep 2
-done
-kubectl get crd applications.argoproj.io >/dev/null 2>&1 || die "Argo CD Application CRD did not become available."
-kubectl get crd appprojects.argoproj.io >/dev/null 2>&1 || die "Argo CD AppProject CRD did not become available."
+kubectl rollout status deployment/argocd-application-controller \
+  -n "$ARGOCD_NAMESPACE" --timeout=300s
 
-# If the caller is in the GitOps repo, apply the project's manifests. Otherwise, create
-# equivalent manifests from inline YAML so this bootstrap can be run from any directory.
-if [[ -f "$PROJECT_FILE" && -f "$APPLICATION_FILE" ]]; then
-  info "Apply the repository's AppProject and dev Application manifests"
-  kubectl apply -f "$PROJECT_FILE"
-  kubectl apply -f "$APPLICATION_FILE"
-else
-  info "Apply AppProject manifest (generated by script)"
-  cat <<'YAML' | kubectl apply -f -
-apiVersion: argoproj.io/v1alpha1
-kind: AppProject
-metadata:
-  name: pharma-project
-  namespace: argocd
-spec:
-  description: Pharma microservices GitOps project
-  sourceRepos:
-    - https://github.com/MedInvo/gitops.git
-  destinations:
-    - server: https://kubernetes.default.svc
-      namespace: pharma-app
-  clusterResourceWhitelist:
-    - group: ""
-      kind: Namespace
-    - group: external-secrets.io
-      kind: ClusterSecretStore
-  namespaceResourceWhitelist:
-    - group: "*"
-      kind: "*"
-YAML
+kubectl rollout status deployment/argocd-applicationset-controller \
+  -n "$ARGOCD_NAMESPACE" --timeout=300s
 
-  info "Apply dev Application manifest (generated by script)"
-  cat <<YAML | kubectl apply -f -
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: ${APP_NAME}
-  namespace: ${ARGOCD_NAMESPACE}
-spec:
-  project: ${APP_PROJECT}
-  source:
-    repoURL: ${GITOPS_REPO_URL}
-    targetRevision: ${GITOPS_BRANCH}
-    path: ${GITOPS_PATH}
-    helm:
-      valueFiles:
-        - values.yaml
-        - values-dev.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: ${APP_NAMESPACE}
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-YAML
-fi
+echo "Checking required CRDs..."
 
-info "Wait for the Application object and show its status"
-kubectl wait --for=jsonpath='{.metadata.name}'="$APP_NAME" "application/$APP_NAME" -n "$ARGOCD_NAMESPACE" --timeout=120s || true
-kubectl get application "$APP_NAME" -n "$ARGOCD_NAMESPACE" \
-  -o custom-columns='NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status' 2>/dev/null || true
+kubectl get crd applications.argoproj.io
+kubectl get crd appprojects.argoproj.io
+kubectl get crd applicationsets.argoproj.io
 
-info "Show Argo CD pods"
-kubectl get pods -n "$ARGOCD_NAMESPACE"
-
-cat <<'NEXT'
-
-Setup step completed. Next useful commands:
-
-  # Watch app status:
-  kubectl get application pharma-dev -n argocd -w
-
-  # Start local UI access (keep this terminal open):
-  kubectl port-forward svc/argocd-server -n argocd 8080:443
-
-  # In another terminal, get initial admin password (do not share it):
-  kubectl get secret argocd-initial-admin-secret -n argocd \
-    -o jsonpath='{.data.password}' | base64 --decode; echo
-
-Note: This script registers pharma-dev with Argo CD. It does not configure private Git credentials,
-AWS IAM/IRSA, External Secrets Operator, ECR access, or DNS/API Gateway.
-NEXT
+echo "Argo CD installation checks completed."

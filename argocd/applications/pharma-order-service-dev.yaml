@@ -10,7 +10,7 @@ spec:
     targetRevision: main
     path: charts/pharma-order-service
     helm:
-      releaseName: pharma-dev
+      releaseName: pharma-order-service
       valueFiles:
         - values.yaml
         - values-dev.yaml

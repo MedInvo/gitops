@@ -10,7 +10,7 @@ spec:
     targetRevision: main
     path: charts/pharma-shared
     helm:
-      releaseName: pharma-dev
+      releaseName: pharma-shared
       valueFiles:
         - values.yaml
         - values-dev.yaml
