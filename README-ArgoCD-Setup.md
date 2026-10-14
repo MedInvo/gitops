@@ -1,123 +1,85 @@
-# Argo CD Bootstrap Script
+Step 1 — Connect to the correct EKS cluster
+Every time you start working, open your terminal and run:
 
-This script automates the Argo CD setup used for the Pharma DevOps EKS project.
+aws eks update-kubeconfig --region us-east-1 --name pharma-dev-cluster
 
-## What it does
 
-1. Verifies `kubectl` and checks that the current context appears to target `pharma-dev-cluster`.
-2. Creates the `argocd` namespace if missing.
-3. Installs or updates Argo CD from the official manifest.
-4. Waits for Argo CD deployments and Application/AppProject CRDs.
-5. Applies the existing `argocd/projects/pharma-project.yaml` and `argocd/applications/pharma-dev.yaml` when run from the GitOps repo. Otherwise, it applies equivalent bootstrap manifests.
-6. Prints the application status and Argo CD pods.
+Verify the cluster and nodes:
+kubectl get nodes
 
-The script is safe to rerun for ordinary setup/update operations. It does not uninstall resources.
 
-## Requirements
+Expected: your EKS worker nodes show Ready.
+Step 2 — Check whether Argo CD is already installed
 
-- `kubectl`
-- Kubernetes access to the intended EKS cluster
-- GitOps repository files if you want the script to apply the committed manifests
-- Network access to GitHub from the machine running the script
+kubectl get pods -n argocd
 
-## Run it
 
-From the local GitOps repository:
+If the Argo CD pods are running, skip the installation step. If the namespace or installation is missing, install Argo CD only then:
 
-```bash
+kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+
+
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+
+Wait for Argo CD to become ready:
+
+kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+
+
+Don't reinstall Argo CD when it is already healthy.
+Step 3 — Go to the GitOps repository
+
 cd ~/Pharma-app/pharma-devops-microservices/gitops
-chmod +x scripts/setup-argocd.sh
-./scripts/setup-argocd.sh
-```
 
-If the script is saved in a different location, run it by its actual path. The default context check expects a context containing `pharma-dev-cluster`.
 
-## Pin an Argo CD version (recommended for repeatable setups)
+Update your local repository:
 
-The default uses the official `stable` manifest, which can change over time. To pin a release, set `ARGOCD_VERSION` to a valid Argo CD release tag:
+git pull --ff-only origin main
 
-```bash
-ARGOCD_VERSION=vX.Y.Z ./scripts/setup-argocd.sh
-```
 
-Replace `vX.Y.Z` with a real release tag you have chosen and verified before running.
+This ensures you use the latest committed manifests.
+Step 4 — Apply the Argo CD project
 
-## Optional configuration
+kubectl apply -f argocd/projects/pharma-project.yaml
 
-```bash
-EXPECTED_CLUSTER=pharma-dev-cluster \
-ARGOCD_NAMESPACE=argocd \
-APP_NAMESPACE=pharma-app \
-GITOPS_REPO_URL=https://github.com/MedInvo/gitops.git \
-GITOPS_BRANCH=main \
-GITOPS_PATH=charts/pharma-app \
-./scripts/setup-argocd.sh
-```
 
-For a private GitOps repository, configure repository credentials in Argo CD separately. Do not put tokens or passwords in this script or commit them to Git.
+This creates or updates the Argo CD project that groups your Applications and defines their permitted sources and destinations.
+Step 5 — Create or update the four Applications
+Run this single command:
 
-## Verify the setup
+kubectl apply -f argocd/applications/pharma-shared-dev.yaml -f argocd/applications/pharma-frontend-dev.yaml -f argocd/applications/pharma-order-service-dev.yaml -f argocd/applications/pharma-product-service-dev.yaml
 
-```bash
-kubectl get pods -n argocd
-kubectl get appprojects -n argocd
+
+These apply commands are repeatable: they create missing Application objects or update existing ones. They do not require deleting Applications first.
+Step 6 — Check synchronization
+
 kubectl get applications -n argocd
-kubectl get application pharma-dev -n argocd \
-  -o jsonpath='{.status.sync.status}{" | "}{.status.health.status}{"\\n"}'
-```
 
-Watch reconciliation:
 
-```bash
-kubectl get application pharma-dev -n argocd -w
-```
+Your desired result is:
+Application	Sync	Health
 
-## Access the UI locally
+pharma-shared-dev	Synced	Healthy
+pharma-frontend-dev	Synced	Healthy
+pharma-order-service-dev	Synced	Healthy
+pharma-product-service-dev	Synced	Healthy
 
-Terminal 1:
+If an Application shows OutOfSync, inspect it first:
+kubectl describe application pharma-frontend-dev -n argocd
 
-```bash
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-```
 
-Open `https://localhost:8080`.
+If the configuration is correct and there are no ownership conflicts, you can trigger a sync for that Application:
 
-Terminal 2 — initial admin password (keep it private):
+kubectl patch application pharma-frontend-dev -n argocd --type merge -p '{"operation":{"sync":{}}}'
 
-```bash
-kubectl get secret argocd-initial-admin-secret -n argocd \
-  -o jsonpath='{.data.password}' | base64 --decode
-echo
-```
 
-## Troubleshooting
+Repeat for another Application only if it needs syncing. Wait and recheck status afterward.
+Step 7 — Verify the workloads
 
-```bash
-kubectl describe application pharma-dev -n argocd
-kubectl get events -n argocd --sort-by=.lastTimestamp
-kubectl get pods -n argocd
 kubectl get pods -n pharma-app
-kubectl describe clustersecretstore pharma-aws-secrets
-kubectl describe externalsecret pharma-db-secret -n pharma-app
-```
 
-If sync fails with `ClusterSecretStore is not permitted`, confirm the AppProject includes:
 
-```yaml
-clusterResourceWhitelist:
-  - group: ""
-    kind: Namespace
-  - group: external-secrets.io
-    kind: ClusterSecretStore
-```
+Then check the Ingress:
 
-Keep this permission limited to the specific cluster-scoped resource needed by the chart.
-
-## Important notes
-
-- Argo CD installs into EKS; it is not installed by the GitOps chart itself.
-- The GitOps Application watches the `main` branch and `charts/pharma-app`, using `values.yaml` and `values-dev.yaml`.
-- The Application has automated sync, prune, and self-heal enabled.
-- The script does not install Terraform, EKS, External Secrets Operator, or provision AWS infrastructure.
-- The script does not expose the Argo CD UI publicly. Port-forwarding is intended for local access.
-- Review the official Argo CD release/version and installation guidance before production use.
+kubectl get ingress -n pharma-app
