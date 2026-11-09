@@ -4,7 +4,7 @@ orderService:
   replicaCount: 2
   image:
     repository: 259732629629.dkr.ecr.us-east-1.amazonaws.com/pharma-medinvo-dev-order-service
-    tag: sha-babd091
+    tag: sha-078c275
   service:
     port: 8000
     targetPort: 8000
