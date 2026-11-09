@@ -14,11 +14,11 @@
 *.key
 *.p12
 *.pfx
+# Kubernetes Secret manifests containing actual credentials
 secrets.yaml
 secrets.yml
-*-secret.yaml
-*-secret.yml
-!charts/pharma-app/templates/external-secret.yaml
+secret.yaml
+secret.yml
 
 # Terraform state and local working files
 *.tfstate

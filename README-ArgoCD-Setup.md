@@ -1,3 +1,42 @@
+After Terraform has applied and GitHub Actions has pushed the three images, use this deployment order.
+Terraform / ECR → connect kubectl → ALB controller → External Secrets →
+Argo CD → create Argo Applications → sync Applications → verify pods/ingress
+1. Connect your terminal to EKS. Run this manually (the phase6_05 script has an incorrect Terraform path):
+aws eks update-kubeconfig --region us-east-1 --name pharma-dev-cluster
+kubectl get nodes
+2. Install the AWS Load Balancer Controller.
+cd infra
+python3 scripts/phase6_06_install_alb_controller.py
+3. Install External Secrets Operator.
+python3 scripts/phase6_07_install_external_secrets.py
+4. Install Argo CD.
+cd ../gitops
+bash scripts/setup-argocd.sh
+5. Create the Argo CD project and four Applications.
+kubectl apply -f argocd/projects/pharma-project.yaml
+
+kubectl apply \
+  -f argocd/applications/pharma-shared-dev.yaml \
+  -f argocd/applications/pharma-frontend-dev.yaml \
+  -f argocd/applications/pharma-product-service-dev.yaml \
+  -f argocd/applications/pharma-order-service-dev.yaml
+6. Your Applications do not currently have automated sync enabled, so trigger a sync for each:
+for app in pharma-shared-dev pharma-frontend-dev pharma-product-service-dev pharma-order-service-dev; do
+  kubectl patch application "$app" -n argocd \
+    --type merge -p '{"operation":{"sync":{}}}'
+done
+7. Verify:
+kubectl get applications -n argocd
+kubectl get pods,services,ingress -n pharma-app
+kubectl get externalsecret,secret -n pharma-app
+Important: before step 5 can fully work, the current GitOps configuration has three blockers:
+- The shared chart claims to create an ExternalSecret, but it only contains a ClusterSecretStore; no ExternalSecret template exists. Therefore postgres-secret will not be created.
+- Terraform creates the Secrets Manager secret but does not create a secret version because manage_secret_version defaults to false. It therefore has no DB credentials for External Secrets to copy.
+- RDS hostnames are hard-coded in the three values-dev.yaml files. A newly created RDS instance will have a different endpoint.
+So the controllers and Argo CD can be installed now, but the backend pods will not become ready until those three GitOps/secret items are fixed. Also, don’t use k8s/ for this AWS deployment—it deploys a local PostgreSQL setup, whereas the GitOps Helm charts are intended to use RDS.
+
+____________________________________________________________________________________
+
 Step 1 — Connect to the correct EKS cluster
 Every time you start working, open your terminal and run:
 
@@ -48,10 +87,25 @@ This creates or updates the Argo CD project that groups your Applications and de
 Step 5 — Create or update the four Applications
 Run this single command:
 
-kubectl apply -f argocd/applications/pharma-shared-dev.yaml -f argocd/applications/pharma-frontend-dev.yaml -f argocd/applications/pharma-order-service-dev.yaml -f argocd/applications/pharma-product-service-dev.yaml
+kubectl apply \
+  -f argocd/applications/pharma-shared-dev.yaml \
+  -f argocd/applications/pharma-frontend-dev.yaml \
+  -f argocd/applications/pharma-product-service-dev.yaml \
+  -f argocd/applications/pharma-order-service-dev.yaml
 
 
 These apply commands are repeatable: they create missing Application objects or update existing ones. They do not require deleting Applications first.
+
+Your Applications do not currently have automated sync enabled, so trigger a sync 
+
+
+for each:
+for app in pharma-shared-dev pharma-frontend-dev pharma-product-service-dev pharma-order-service-dev; do
+  kubectl patch application "$app" -n argocd \
+    --type merge -p '{"operation":{"sync":{}}}'
+done
+
+
 Step 6 — Check synchronization
 
 kubectl get applications -n argocd
