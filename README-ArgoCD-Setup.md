@@ -83,3 +83,12 @@ kubectl get pods -n pharma-app
 Then check the Ingress:
 
 kubectl get ingress -n pharma-app
+
+
+login to argo cd UI
+
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+to get password:
+
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 --decode; echo

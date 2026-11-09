@@ -1,53 +1,205 @@
 # MedInvo GitOps
 
-This repository contains the GitOps manifests, Helm charts and helper scripts used to deploy the Pharma microservices platform to an EKS cluster via Argo CD.
+This directory is the **desired-state repository** for deploying the Pharma
+frontend and backend services to Kubernetes. It contains Argo CD configuration
+and Helm charts; it does not contain application source code or build container
+images.
 
-### Stack
-- Language(s): Go Template (Helm chart templates), Shell (helper scripts)
-- Tools: Kubernetes, Helm, Argo CD, AWS EKS
+## How the pieces fit together
 
-## Top-level repository structure
+```text
+Frontend/backend source change
+             |
+             v
+  GitHub Actions tests and scans
+             |
+             v
+       Build image -> ECR
+             |
+             v
+ Update the image tag in this repo
+             |
+             v
+ Argo CD reads the chart and values
+             |
+             v
+      EKS namespace: pharma-app
 ```
-README.md
-README-ArgoCD-Setup.md    # Operational runbook for installing Argo CD and syncing apps
-.argocd/ or argocd/       # Argo CD manifests: Applications and Projects
-backups/                  # Backup/restore manifests and notes (Velero, etc.)
-charts/                   # Helm charts for services (charts/pharma-*)
-environments/             # Environment-specific values/overlays (dev/staging/prod)
-scripts/                  # Utility scripts for bootstrap, CI helpers, or convenience
-.gitignore
+
+The CI workflows build and publish images, then commit their tags to the
+development values files here. Argo CD reads this repository and compares the
+declared chart configuration with the resources in the cluster. An Argo CD
+Application in this repo is a Kubernetes custom resource: it tells Argo CD
+which chart and values to use, which Git revision to read, and where to deploy.
+
+The development Applications point at the `main` branch of
+[`MedInvo/gitops`](https://github.com/MedInvo/gitops), with the chart as their
+source path. The image tag is therefore changed in Git first; Argo CD then
+observes the changed desired state.
+
+## Repository map
+
+```text
+gitops/
+├── argocd/
+│   ├── applications/
+│   │   ├── pharma-shared-dev.yaml
+│   │   ├── pharma-frontend-dev.yaml
+│   │   ├── pharma-order-service-dev.yaml
+│   │   ├── pharma-product-service-dev.yaml
+│   │   ├── pharma-staging.yaml             # placeholder; currently empty
+│   │   └── pharma-prod.yaml                # placeholder; currently empty
+│   └── projects/
+│       └── pharma-project.yaml
+├── charts/
+│   ├── pharma-shared/                      # shared config and secrets wiring
+│   ├── pharma-frontend/                    # frontend Deployment, Service, Ingress
+│   ├── pharma-order-service/               # order Deployment and Service
+│   └── pharma-product-service/             # product Deployment and Service
+├── scripts/
+│   └── setup-argocd.sh                     # version-pinned Argo CD installation
+├── README.md
+└── README-ArgoCD-Setup.md                  # cluster setup and operating steps
 ```
 
-## Directory explanations
-- argocd/ (or .argocd/):
-  - Contains Argo CD Application YAMLs (argocd/applications/) and Project YAMLs (argocd/projects/).
-  - Each Application points at a chart path under charts/ and to the `main` branch; Argo CD uses these to create and reconcile Helm releases in the cluster.
+### Argo CD project and Applications
 
-- charts/:
-  - Helm charts for each microservice and shared components (e.g. pharma-frontend, pharma-order-service, pharma-product-service, pharma-shared).
-  - Each chart includes templates/, Chart.yaml, and values files (values.yaml, values-dev.yaml). Edit values files for environment-specific configuration.
+- `argocd/projects/pharma-project.yaml` defines the `pharma-project` AppProject.
+  It restricts sources to the GitOps repository and destinations to the
+  in-cluster API server and the `pharma-app` namespace. It also declares the
+  cluster-scoped resources the charts need.
+- The four `*-dev.yaml` Application manifests each select one chart under
+  `charts/`, use the `main` Git revision, and layer `values.yaml` with
+  `values-dev.yaml`. They deploy to `pharma-app`.
+- `CreateNamespace=true` allows Argo CD to create that destination namespace.
+- The Applications currently configure namespace creation, but do **not**
+  enable Argo CD automated sync. Argo CD can report a Git change as
+  `OutOfSync`; an operator must sync it from the UI or CLI unless automated
+  sync is deliberately configured.
+- The staging and production Application files are empty today. They are
+  placeholders, not usable environment deployments.
 
-- environments/:
-  - Holds environment-specific overlays or values files which are referenced by Argo CD or CI/CD pipelines to produce the correct helm values per environment (dev, staging, prod).
+### Helm charts and values
 
-- backups/:
-  - Backup manifests, configuration, or runbooks (Velero, snapshots, or custom backup procedures) used to protect cluster state and persistent data.
+Each service chart keeps reusable defaults in `values.yaml` and the current
+development-specific settings in `values-dev.yaml`. The Application manifests
+load the defaults first and then the development overrides. Common values
+include the namespace; the development files set image repositories/tags and
+replica counts, plus service and database connection settings where applicable.
 
-- scripts/:
-  - Helper scripts for bootstrapping the cluster, automating repetitive tasks, or CI helper scripts. Examples include scripts to generate secrets, run local validations, or perform bulk kubectl/helm operations.
+| Chart | Resources and purpose |
+|---|---|
+| `pharma-shared` | Creates `app-config`, a `ClusterSecretStore`, and an `ExternalSecret`. |
+| `pharma-frontend` | Runs the frontend Deployment and ClusterIP Service; creates an ALB Ingress. |
+| `pharma-order-service` | Runs the order-service Deployment and ClusterIP Service; configures its product-service URL and database settings. |
+| `pharma-product-service` | Runs the product-service Deployment and ClusterIP Service, with readiness/liveness TCP probes and database settings. |
 
-## How it fits together (brief)
-1. Developers update Helm chart values or chart templates under charts/ and push changes to this repo.
-2. Argo CD monitors this repository; Application manifests in argocd/applications/ tell Argo CD which chart path and values to deploy to which namespace (e.g. `pharma-app`).
-3. Argo CD reconciles the desired state by installing/upgrading Helm releases on the target EKS cluster.
-4. environments/ and values-*.yaml files provide the environment-specific configuration used by those Helm releases.
+The frontend Ingress is configured for the AWS Load Balancer Controller and
+references an ACM certificate. Ensure that certificate and its region are
+appropriate for the target cluster before deploying to another environment.
 
-## Quick operational notes
-- The included README-ArgoCD-Setup.md is an operational runbook: follow it to connect to the EKS cluster, install Argo CD, apply projects and applications, and verify sync/health.
-- Application manifests reference value files such as values.yaml and values-dev.yaml — check charts/* for the concrete values to change per environment.
+### Shared configuration and secrets
 
----
+The shared chart publishes non-secret connection settings in the `app-config`
+ConfigMap. Its `ExternalSecret` asks External Secrets Operator to create the
+Kubernetes Secret `postgres-secret` from the AWS Secrets Manager entry
+`pharma-medinvo/dev/app-db`. The associated `ClusterSecretStore` uses AWS
+Secrets Manager in `us-east-1` and a Kubernetes service account for AWS
+identity.
 
-If you'd like, I can also:
-- Add a short CONTRIBUTING.md with PR and branching guidance for GitOps changes.
-- Add a top-level CHARTS.md that documents each chart's configurable values and expected secrets.
+This setup depends on External Secrets Operator and its CRDs being installed,
+and on the referenced service account/IAM permissions and Secrets Manager
+entry existing. The chart defines the integration; it does not install or
+provision those prerequisites. Do not put database credentials in Helm values
+or commit secret values to Git.
+
+## Image update and deployment flow
+
+1. A source repository's GitHub Actions workflow runs tests and quality/security
+   checks, builds the service image, scans it, and publishes it to Amazon ECR.
+2. On the configured deployment branch, the workflow checks out this repository
+   and updates the relevant `image.tag` in a `values-dev.yaml` file.
+3. The workflow commits and pushes that change to the GitOps repository.
+4. Argo CD reads the changed chart values and reports whether the cluster is
+   `OutOfSync`. Since automated sync is not currently enabled, sync the
+   Application after reviewing the diff.
+5. Kubernetes pulls the selected image and rolls out the Deployment. Confirm
+   pod and ingress health in the cluster.
+
+The current workflows use the frontend development values file for frontend
+image tags and the order/product development files for backend image tags.
+Review the workflows in the frontend and backend source repositories if
+branch rules or image publication behavior change.
+
+## Deploy or refresh the development Applications
+
+Prerequisites: `kubectl` is installed and authenticated to the intended EKS
+cluster; Argo CD is healthy; and any chart dependencies (including External
+Secrets Operator and AWS Load Balancer Controller) are installed and configured.
+
+From this directory, apply the project and the four development Applications:
+
+```bash
+kubectl apply -f argocd/projects/pharma-project.yaml
+
+kubectl apply \
+  -f argocd/applications/pharma-shared-dev.yaml \
+  -f argocd/applications/pharma-frontend-dev.yaml \
+  -f argocd/applications/pharma-order-service-dev.yaml \
+  -f argocd/applications/pharma-product-service-dev.yaml
+```
+
+These commands are repeatable: they create missing Argo CD objects or update
+their definitions. They do not themselves force a sync of every Application.
+
+Check Application state and workloads:
+
+```bash
+kubectl get applications -n argocd
+kubectl get pods,services,ingress -n pharma-app
+```
+
+If an Application is `OutOfSync`, inspect it before syncing:
+
+```bash
+kubectl describe application pharma-frontend-dev -n argocd
+```
+
+After confirming the desired change and resolving any configuration or
+ownership issue, request a sync:
+
+```bash
+kubectl patch application pharma-frontend-dev -n argocd \
+  --type merge -p '{"operation":{"sync":{}}}'
+```
+
+Replace the Application name as needed, then check its sync and health status
+again. For cluster connection, Argo CD installation, and UI access instructions,
+see [`README-ArgoCD-Setup.md`](./README-ArgoCD-Setup.md). The installation
+script [`scripts/setup-argocd.sh`](./scripts/setup-argocd.sh) installs the
+version pinned in that script.
+
+## Making changes safely
+
+- Change image tags in the appropriate development values file (normally the
+  CI workflow does this); use immutable tags such as commit-SHA tags.
+- Keep shared settings in the chart's defaults only when they genuinely apply
+  to every environment. Put environment-specific values in environment
+  overrides.
+- Before adding staging or production, fill in and validate their Application
+  manifests, values, repository/branch strategy, secrets, and AWS-specific
+  settings. Do not assume the empty manifests are deployable.
+- Render or lint a chart locally before applying changes, for example:
+
+  ```bash
+  helm lint charts/pharma-frontend \
+    -f charts/pharma-frontend/values-dev.yaml
+  helm template pharma-frontend charts/pharma-frontend \
+    -f charts/pharma-frontend/values-dev.yaml
+  ```
+
+  Pass the corresponding environment values file when linting or rendering
+  other charts as well; some templates require values supplied by that file.
+
+- Review the rendered resources and the Argo CD diff before syncing changes to
+  a live cluster.
