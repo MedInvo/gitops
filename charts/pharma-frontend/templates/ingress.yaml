@@ -7,9 +7,10 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
-    alb.ingress.kubernetes.io/certificate-arn: ''
-    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    # remove ,{"HTTPS":443}] above add later if you want to enable SSL
+    # alb.ingress.kubernetes.io/certificate-arn: ''
+    # alb.ingress.kubernetes.io/ssl-redirect: '443'
     alb.ingress.kubernetes.io/healthcheck-path: /
 spec:
   ingressClassName: alb
