@@ -30,7 +30,7 @@ Expected result: EKS worker nodes show `Ready`.
 
 ```bash
 cd infra
-python3 scripts/phase6_06_install_alb_controller.py
+python3 scripts/02_install_alb_controller.py
 ```
 
 This installs the AWS Load Balancer Controller required for Ingress resources.
@@ -38,7 +38,7 @@ This installs the AWS Load Balancer Controller required for Ingress resources.
 ## Step 3: Install the External Secrets Operator
 
 ```bash
-python3 scripts/phase6_07_install_external_secrets.py
+python3 scripts/03_install_external_secrets.py
 ```
 
 This installs the controller needed to read secrets from AWS Secrets Manager into Kubernetes.
